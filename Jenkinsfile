@@ -1,38 +1,58 @@
-def gv
-
 pipeline {
     agent any
+    tools {
+  maven 'Maven-3.6'
+        }
     stages {
-        stage("init") {
+        stage('git-checkout') {
             steps {
-                script {
-                    gv = load "script.groovy"
+               git branch: 'main', url: 'https://github.com/Bhuvaneshwar-PH/java-application.git'
+            }
+         }
+        stage('mvn-test') {
+            steps {
+               sh 'mvn test'
+            }
+            }
+        stage('mvn-deploy') {
+            steps {
+               sh 'mvn clean package'
+            }
+        }
+        stage('docker-login') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'nexus-docker-repo', passwordVariable: 'PASSWD', usernameVariable: 'USERNAME')]) {
+                     sh 'docker login -u $USERNAME -p $PASSWD 172.17.0.3:5000'
                 }
             }
         }
-        stage("build jar") {
+        stage('docker-build') {
             steps {
-                script {
-                    echo "building jar"
-                    //gv.buildJar()
-                }
+               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:1.7 .'
             }
         }
-        stage("build image") {
+        stage('docker-push') {
             steps {
-                script {
-                    echo "building image"
-                    //gv.buildImage()
-                }
+               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:1.7'
             }
         }
-        stage("deploy") {
-            steps {
-                script {
-                    echo "deploying"
-                    //gv.deployApp()
-                }
-            }
-        }
+        
     }   
-}
+    post {
+      always {
+           emailext (
+               subject: " Pipeline Status: ${RESULT}",
+               body: ''' <html>
+                            <body>
+                            <p>Build Status: ${}</p>
+                            <p>Build Number: ${BUILD_NUMBER}</p>
+                            <p>Check the <a href="${BUILD_URL}">console output</a></p>
+                            </body>
+                to: 'hbhuvaneshwar@gmail.com',
+                from: 'jenkins@admin.com',
+                replyTo:'jenkins@reply.com',
+                mimeType: 'text/html' '''
+              )       
+        }
+     }   
+  }
