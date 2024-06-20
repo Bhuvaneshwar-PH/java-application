@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-  maven 'Maven-3.6'
+  maven 'mvn'
         }
     stages {
         stage('git-checkout') {
@@ -21,38 +21,57 @@ pipeline {
         }
         stage('docker-login') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-docker-repo', passwordVariable: 'PASSWD', usernameVariable: 'USERNAME')]) {
-                     sh 'docker login -u $USERNAME -p $PASSWD 172.17.0.3:5000'
+                withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'passwd', usernameVariable: 'username')])  {
+                    sh 'docker login -u $username -p $passwd 172.17.0.3:5000'
                 }
             }
         }
         stage('docker-build') {
             steps {
-               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:1.7 .'
+               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${BUILD_NUMBER} .'
             }
         }
         stage('docker-push') {
             steps {
-               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:1.7'
+               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${BUILD_NUMBER}'
             }
         }
         
     }   
     post {
-      always {
-           emailext (
-               subject: " Pipeline Status: ${RESULT}",
-               body: ''' <html>
-                            <body>
-                            <p>Build Status: ${}</p>
-                            <p>Build Number: ${BUILD_NUMBER}</p>
-                            <p>Check the <a href="${BUILD_URL}">console output</a></p>
-                            </body>
-                to: 'hbhuvaneshwar@gmail.com',
-                from: 'jenkins@admin.com',
-                replyTo:'jenkins@reply.com',
-                mimeType: 'text/html' '''
-              )       
-        }
-     }   
-  }
+        always {
+            script {
+                    def jobName = env.JOB_NAME
+                    def buildNumber = env.BUILD_NUMBER
+                    def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
+                    def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 
+                    'red'
+                    
+                    def body = """<html>
+                    <body>
+                    <div style="border: 4px solid ${bannerColor}; padding: 
+                    10px;">
+                    <h2>${jobName} - Build ${buildNumber}</h2>
+                    <div style="background-color: ${bannerColor}; padding: 
+                    10px;">
+                    <h3 style="color: white;">Pipeline Status: 
+                    ${pipelineStatus.toUpperCase()}</h3>
+                    </div>
+                    <p>Check the <a href="${BUILD_URL}">console 
+                    output</a>.</p>
+                    </div>
+                    </body>
+                    </html>"""
+                    emailext (
+                    subject: "${jobName} - Build ${buildNumber} -${pipelineStatus.toUpperCase()}",
+                    body: body,
+                    to: 'hbhuvaneshwar@gmail.com',
+                    from: 'jenkins@example.com',
+                    replyTo: 'jenkins@example.com',
+                    mimeType: 'text/html',
+                    //attachmentsPattern: 'trivy-report.html'             
+                        )
+             }          
+        } 
+    } 
+}
