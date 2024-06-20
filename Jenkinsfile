@@ -3,6 +3,10 @@ pipeline {
     tools {
   maven 'mvn'
         }
+    parameters {
+        choice(choices: ['2.1', '2.2', '2.3'], description: 'Version of the application', name: 'VERSION')
+        booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
+    }
     stages {
         stage('git-checkout') {
             steps {
@@ -10,6 +14,11 @@ pipeline {
             }
          }
         stage('mvn-test') {
+            when {
+                expression {
+                    params.ExecuteTest == true
+                }
+            } 
             steps {
                sh 'mvn test'
             }
@@ -28,12 +37,12 @@ pipeline {
         }
         stage('docker-build') {
             steps {
-               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${BUILD_NUMBER} .'
+               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.VERSION} .'
             }
         }
         stage('docker-push') {
             steps {
-               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${BUILD_NUMBER}'
+               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${params.VERSION}'
             }
         }
         
