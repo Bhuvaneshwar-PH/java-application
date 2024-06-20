@@ -4,8 +4,7 @@ pipeline {
   maven 'mvn'
         }
     parameters {
-        choice(choices: ['2.1', '2.2', '2.3'], description: 'Version of the application', name: 'Versions')
-        booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
+         booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
     }
     stages {
         stage('git-checkout') {
@@ -26,6 +25,7 @@ pipeline {
         stage('mvn-deploy') {
             steps {
                sh 'mvn clean package'
+                
             }
         }
         stage('docker-login') {
@@ -35,15 +35,20 @@ pipeline {
                 }
             }
         }
+        
         stage('docker-build') {
             steps {
-               sh "docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.Versions} ."
-                
+                script {
+                    env.Versionss = input message: "select Versions for Tag", ok: "Done" ,parameters: [choice(name: 'Version',choices: ['2.0.0','3.0.0'],description: '')]
+                }
+               sh "docker build -t 172.17.0.3:5000/mvn-pipeline_2:${Versionss} ."
+                              
             }
         }
         stage('docker-push') {
             steps {
-               sh "docker push 172.17.0.3:5000/mvn-pipeline_2:${params.Versions}"
+               sh "docker push 172.17.0.3:5000/mvn-pipeline_2:${Versionss}"
+                sh ''' echo "Hello this is version choosen ${Versionss}" '''
             }
         }
         
