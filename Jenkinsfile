@@ -37,13 +37,13 @@ pipeline {
         }
         stage('docker-build') {
             steps {
-               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.Versions} .'
-                echo "${params.ExecuteTest}  ${params.Versions}"
+               sh "docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.Versions} ."
+                
             }
         }
         stage('docker-push') {
             steps {
-               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${params.Versions}'
+               sh "docker push 172.17.0.3:5000/mvn-pipeline_2:${params.Versions}"
             }
         }
         
