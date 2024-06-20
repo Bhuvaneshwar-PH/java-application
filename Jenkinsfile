@@ -4,7 +4,7 @@ pipeline {
   maven 'mvn'
         }
     parameters {
-        choice(choices: ['2.1', '2.2', '2.3'], description: 'Version of the application', name: 'VERSION')
+        choice(choices: ['2.1', '2.2', '2.3'], description: 'Version of the application', name: 'Versions')
         booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
     }
     stages {
@@ -37,12 +37,12 @@ pipeline {
         }
         stage('docker-build') {
             steps {
-               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.VERSION} .'
+               sh 'docker build -t 172.17.0.3:5000/mvn-pipeline_2:${params.Versions} .'
             }
         }
         stage('docker-push') {
             steps {
-               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${params.VERSION}'
+               sh 'docker push 172.17.0.3:5000/mvn-pipeline_2:${params.Versions}'
             }
         }
         
