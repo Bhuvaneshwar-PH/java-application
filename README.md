@@ -31,7 +31,8 @@
 
 ### Post-Build Actions
 
- **Email Notification**:
+ **Email Notification**:  
+    - Took inspiration from DevopsShack youtube video
    - Sends an HTML email with job name, build number, and pipeline status (`SUCCESS` or `UNKNOWN`).
    - Includes a styled status banner and a link to the Jenkins console output.
 
