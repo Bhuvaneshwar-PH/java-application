@@ -20,7 +20,7 @@ pipeline {
         stage('git-checkout') {
             steps {
                script{
-                    gv.git()
+                    gv.gitpull()
                }
             }
          }
