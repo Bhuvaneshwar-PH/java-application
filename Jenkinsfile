@@ -1,3 +1,4 @@
+def gv
 pipeline {
     agent any
     tools {
@@ -6,10 +7,21 @@ pipeline {
     parameters {
          booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
     }
+    stages('init'){
+        steps{
+            script{
+                gv = load "script.groovy"
+            }
+            
+        }
+
+    }
     stages {
         stage('git-checkout') {
             steps {
-               git branch: 'main', url: 'https://github.com/Bhuvaneshwar-PH/java-application.git'
+               script{
+                    gv.git()
+               }
             }
          }
         stage('mvn-test') {
@@ -46,7 +58,7 @@ pipeline {
                 expression {
                     BRANCH_NAME == 'main'
                 }
-            } 
+              }
             steps {
                 script {
                     env.Versionss = input message: "select Versions for Tag", ok: "Done" ,parameters: [choice(name: 'Version',choices: ['2.0.0','3.0.0'],description: '')]
