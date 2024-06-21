@@ -7,16 +7,16 @@ pipeline {
     parameters {
          booleanParam(defaultValue: true, description: 'Choose whether to run tests or not', name: 'ExecuteTest')
     }
-    stages('init'){
+   
+    stages {
+         stage('init'){
         steps{
             script{
-                gv = load "scripts.groovy"
+                gv = load "script.groovy"
             }
             
         }
-
     }
-    stages {
         stage('git-checkout') {
             steps {
                script{
