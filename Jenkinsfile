@@ -29,6 +29,11 @@ pipeline {
             }
         }
         stage('docker-login') {
+            when {
+                expression {
+                    BRANCH_NAME == 'main'
+                }
+            } 
             steps {
                 withCredentials([usernamePassword(credentialsId: 'nexus-cred', passwordVariable: 'passwd', usernameVariable: 'username')])  {
                     sh 'docker login -u $username -p $passwd 172.17.0.3:5000'
@@ -37,6 +42,11 @@ pipeline {
         }
         
         stage('docker-build') {
+              when {
+                expression {
+                    BRANCH_NAME == 'main'
+                }
+            } 
             steps {
                 script {
                     env.Versionss = input message: "select Versions for Tag", ok: "Done" ,parameters: [choice(name: 'Version',choices: ['2.0.0','3.0.0'],description: '')]
@@ -46,6 +56,11 @@ pipeline {
             }
         }
         stage('docker-push') {
+              when {
+                expression {
+                    BRANCH_NAME == 'main'
+                }
+            } 
             steps {
                sh "docker push 172.17.0.3:5000/mvn-pipeline_2:${Versionss}"
                 sh ''' echo "Hello this is version choosen ${Versionss}" '''
